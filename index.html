@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sans-Based Difficulty Magnitude Calculator v2.0</title>
+    <title>Sans Scale Calculator - Beta v3</title>
     <style>
         :root {
             --color-bg: #1a1d23;
@@ -121,10 +121,43 @@
             border-color: var(--color-primary);
         }
 
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        .slider-container {
+            margin-top: 8px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: var(--color-bg);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--color-primary);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: var(--color-primary);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: var(--color-primary);
+            font-size: 1.2rem;
+            margin-top: 8px;
         }
 
         button {
@@ -272,6 +305,55 @@
             font-style: italic;
         }
 
+        .guide-section {
+            background: var(--color-surface);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--color-border);
+        }
+
+        .guide-section h3 {
+            color: var(--color-primary);
+            margin-bottom: 12px;
+        }
+
+        .guide-section ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .guide-section li {
+            margin-bottom: 6px;
+            color: var(--color-text-secondary);
+        }
+
+        .parameter-guide {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .parameter-card {
+            background: var(--color-bg);
+            padding: 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+        }
+
+        .parameter-card h4 {
+            color: var(--color-primary);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .parameter-card p {
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 6px;
+        }
+
         .tabs {
             display: flex;
             gap: 8px;
@@ -298,14 +380,6 @@
             color: white;
         }
 
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
         .practice-ceiling-line {
             border-top: 2px dashed var(--color-accent);
             margin: 16px 0;
@@ -319,77 +393,173 @@
             text-align: center;
             margin-bottom: 8px;
         }
+
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible:hover {
+            color: var(--color-primary);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.active {
+            max-height: 2000px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Sans-Based Difficulty Magnitude Calculator</h1>
-            <div class="subtitle">v2.0 - Calculate boss difficulty using the Practice Ceiling Scale</div>
+            <h1>Sans Scale Calculator</h1>
+            <div class="subtitle">Beta v3 - Simplified Boss Difficulty Measurement</div>
             <div class="subtitle" style="margin-top: 8px; font-size: 0.85rem;">
-                <strong>Practice Ceiling (D ≈ 1.85):</strong> The threshold where skill + practice stops being sufficient. 
-                Below this, improvement comes from practice. Above this, you need skill + endurance + luck.
+                <strong>Practice Ceiling (SS ~1.20-1.30):</strong> The threshold where practice alone is no longer sufficient.
             </div>
         </header>
+
+        <!-- Guide Section -->
+        <div class="guide-section">
+            <h3 class="collapsible" onclick="toggleGuide()">Quick Start Guide (Click to Expand)</h3>
+            <div id="guideContent" class="collapsible-content">
+                <p style="margin-bottom: 12px;">The Sans Scale (SS) uses three simple parameters to calculate boss difficulty relative to Sans from Undertale.</p>
+                
+                <div class="parameter-guide">
+                    <div class="parameter-card">
+                        <h4>Mechanical Intensity (MI)</h4>
+                        <p><strong>What it measures:</strong> Input density, reaction speed, precision requirements</p>
+                        <p><strong>1-3:</strong> Slow-paced, forgiving timing</p>
+                        <p><strong>4-6:</strong> Moderate challenge, standard precision</p>
+                        <p><strong>7-8:</strong> High APM, tight timing windows</p>
+                        <p><strong>9-10:</strong> Extreme speed and precision demands</p>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h4>Endurance Factor (EF)</h4>
+                        <p><strong>What it measures:</strong> Fight duration, stamina drain, consistency needed</p>
+                        <p><strong>1-3:</strong> Brief encounter, low fatigue</p>
+                        <p><strong>4-6:</strong> Moderate length, sustainable</p>
+                        <p><strong>7-8:</strong> Long fight, focus fatigue</p>
+                        <p><strong>9-10:</strong> Marathon, extreme endurance test</p>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h4>Pattern Complexity (PC)</h4>
+                        <p><strong>What it measures:</strong> Memorization load, RNG, adaptability</p>
+                        <p><strong>1-3:</strong> Simple, repetitive patterns</p>
+                        <p><strong>4-6:</strong> Moderate variety, some memorization</p>
+                        <p><strong>7-8:</strong> Complex patterns, high learning curve</p>
+                        <p><strong>9-10:</strong> Extreme variety or adaptation required</p>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px; color: var(--color-primary);">Build Quality</h4>
+                <ul>
+                    <li><strong>God-tier (0.65x):</strong> Perfect synergies, trivializes mechanics</li>
+                    <li><strong>Optimized (0.75x):</strong> Strong build with clear advantages</li>
+                    <li><strong>Good (0.85x):</strong> Solid setup with some benefits</li>
+                    <li><strong>Standard (1.0x):</strong> Baseline experience</li>
+                    <li><strong>Suboptimal (1.25x):</strong> Missing key items or upgrades</li>
+                    <li><strong>Poor (1.5x):</strong> Actively handicapped</li>
+                    <li><strong>Challenge (2.0x-3.0x):</strong> Self-imposed restrictions</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px; color: var(--color-primary);">Consistency Multiplier</h4>
+                <ul>
+                    <li><strong>Normal (1.0x):</strong> Can take multiple hits</li>
+                    <li><strong>Low-Margin (1.5x):</strong> Only 2-4 hits allowed</li>
+                    <li><strong>Near-Hitless (2.5x):</strong> 1 hit maximum</li>
+                    <li><strong>Hitless (3.5x):</strong> No damage allowed</li>
+                    <li><strong>Frame-Perfect (4.5x):</strong> Frame-perfect hitless execution</li>
+                    <li><strong>Extended Perfect (6.0x+):</strong> Extended frame-perfect requirements</li>
+                </ul>
+
+                <h4 style="margin-top: 16px; margin-bottom: 8px; color: var(--color-primary);">Interpreting Results</h4>
+                <ul>
+                    <li><strong>SS = 1.00:</strong> Same difficulty as Sans (baseline)</li>
+                    <li><strong>SS = 1.10:</strong> ~2x harder than Sans</li>
+                    <li><strong>SS = 1.30:</strong> ~5x harder than Sans</li>
+                    <li><strong>SS = 1.50:</strong> ~10x harder than Sans</li>
+                    <li><strong>SS = 2.00:</strong> ~100x harder than Sans</li>
+                </ul>
+            </div>
+        </div>
 
         <div class="layout">
             <!-- Calculator Panel -->
             <div class="card">
-                <h2>📊 Calculate New Boss</h2>
+                <h2>Calculate Boss Difficulty</h2>
                 
                 <div class="form-group">
                     <label>Boss Name</label>
-                    <input type="text" id="bossName" placeholder="e.g., Super Mega Boss">
+                    <input type="text" id="bossName" placeholder="e.g., Nightmare King Grimm">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        Input Density (I) 
-                        <span class="label-hint">actions/sec</span>
-                    </label>
-                    <input type="number" id="inputI" step="0.1" min="1" max="15" value="5.0">
-                    <div class="help-text">Actions per second during peak intensity (5-10 typical)</div>
+                    <label>Mechanical Intensity (MI)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sliderMI" min="1" max="10" step="0.1" value="5.0" oninput="updateSlider('MI')">
+                        <div class="slider-value" id="valueMI">5.0</div>
+                    </div>
+                    <div class="help-text">Input density, reaction speed, precision requirements</div>
                 </div>
 
-                <div class="input-row">
-                    <div class="form-group">
-                        <label>
-                            Telegraph Time (Tg)
-                            <span class="label-hint">seconds</span>
-                        </label>
-                        <input type="number" id="inputTg" step="0.05" min="0.1" max="3" value="1.0">
+                <div class="form-group">
+                    <label>Endurance Factor (EF)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sliderEF" min="1" max="10" step="0.1" value="5.0" oninput="updateSlider('EF')">
+                        <div class="slider-value" id="valueEF">5.0</div>
                     </div>
-                    <div class="form-group">
-                        <label>
-                            Activation Window (Aw)
-                            <span class="label-hint">seconds</span>
-                        </label>
-                        <input type="number" id="inputAw" step="0.01" min="0.03" max="0.5" value="0.1">
-                    </div>
+                    <div class="help-text">Fight duration, stamina drain, consistency needed</div>
                 </div>
 
-                <div class="input-row">
-                    <div class="form-group">
-                        <label>
-                            Precision (P)
-                            <span class="label-hint">1-12 scale</span>
-                        </label>
-                        <input type="number" id="inputP" step="0.5" min="1" max="12" value="5">
+                <div class="form-group">
+                    <label>Pattern Complexity (PC)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sliderPC" min="1" max="10" step="0.1" value="5.0" oninput="updateSlider('PC')">
+                        <div class="slider-value" id="valuePC">5.0</div>
                     </div>
-                    <div class="form-group">
-                        <label>
-                            Duration (T)
-                            <span class="label-hint">seconds</span>
-                        </label>
-                        <input type="number" id="inputT" step="10" min="30" max="1200" value="300">
-                    </div>
+                    <div class="help-text">Memorization load, RNG variance, adaptability</div>
                 </div>
 
-                <button onclick="calculateDifficulty()">Calculate Difficulty</button>
+                <div class="form-group">
+                    <label>Build Quality</label>
+                    <select id="buildQuality">
+                        <option value="0.65">God-tier (0.65x)</option>
+                        <option value="0.75">Optimized (0.75x)</option>
+                        <option value="0.85">Good (0.85x)</option>
+                        <option value="1.0" selected>Standard (1.0x)</option>
+                        <option value="1.25">Suboptimal (1.25x)</option>
+                        <option value="1.5">Poor (1.5x)</option>
+                        <option value="2.0">Challenge Run (2.0x)</option>
+                        <option value="2.5">Challenge Run (2.5x)</option>
+                        <option value="3.0">Challenge Run (3.0x)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Consistency Multiplier</label>
+                    <select id="consistencyMod">
+                        <option value="1.0" selected>Normal (1.0x)</option>
+                        <option value="1.5">Low-Margin (1.5x)</option>
+                        <option value="2.5">Near-Hitless (2.5x)</option>
+                        <option value="3.5">Hitless Required (3.5x)</option>
+                        <option value="4.5">Frame-Perfect Hitless (4.5x)</option>
+                        <option value="6.0">Extended Frame-Perfect (6.0x)</option>
+                    </select>
+                </div>
+
+                <button onclick="calculateDifficulty()">Calculate Sans Scale</button>
 
                 <div id="result" style="display: none;" class="result-box">
-                    <div style="font-size: 0.9rem; color: var(--color-text-secondary);">Difficulty Magnitude</div>
-                    <div class="result-magnitude" id="resultD">-</div>
+                    <div style="font-size: 0.9rem; color: var(--color-text-secondary);">Sans Scale Magnitude</div>
+                    <div class="result-magnitude" id="resultSS">-</div>
                     <div class="result-multiplier" id="resultMult">-</div>
                     <div class="result-tier" id="resultTier">-</div>
                 </div>
@@ -406,9 +576,10 @@
                 
                 <div class="tabs">
                     <div class="tab active" onclick="switchTab('all')">All Bosses</div>
-                    <div class="tab" onclick="switchTab('beatable')">Beatable</div>
-                    <div class="tab" onclick="switchTab('unbeatable')">Unbeatable</div>
+                    <div class="tab" onclick="switchTab('beatable')">Below Ceiling</div>
+                    <div class="tab" onclick="switchTab('unbeatable')">Above Ceiling</div>
                 </div>
+                
                 <div style="margin-bottom: 12px; text-align: right;">
                     <button class="secondary" style="padding: 6px 12px; font-size: 0.85rem; width: auto;" onclick="resetDatabase()">Reset to Defaults</button>
                 </div>
@@ -421,7 +592,7 @@
 
         <!-- Comparison Panel -->
         <div class="card">
-            <h2>🔍 Comparison View</h2>
+            <h2>Comparison View</h2>
             <div id="comparisonView">
                 <p style="text-align: center; color: var(--color-text-secondary);">
                     Calculate a boss or select from the database to start comparing
@@ -431,32 +602,39 @@
     </div>
 
     <script>
-        const SANS_S = 140.2856;
+        const SANS_REFERENCE = 6.475;
 
         const defaultBosses = [
-            { name: "Omega Flowey", I: 4.0, Tg: 1.5, Aw: 0.12, P: 4.0, T: 420, D: 0.78 },
-            { name: "Undyne", I: 4.5, Tg: 1.2, Aw: 0.08, P: 4.5, T: 240, D: 0.95 },
-            { name: "Sans", I: 5.0, Tg: 1.5, Aw: 0.0667, P: 5.0, T: 300, D: 1.00 },
-            { name: "King Dice", I: 5.0, Tg: 1.3, Aw: 0.09, P: 5.0, T: 360, D: 1.05 },
-            { name: "Undyne the Undying", I: 5.0, Tg: 1.0, Aw: 0.08, P: 5.5, T: 300, D: 1.15 },
-            { name: "Jevil", I: 5.5, Tg: 1.0, Aw: 0.10, P: 6.0, T: 180, D: 1.25 },
-            { name: "Nightmare King Grimm", I: 6.0, Tg: 0.8, Aw: 0.15, P: 7.0, T: 180, D: 1.40 },
-            { name: "Lost Kin", I: 7.5, Tg: 0.6, Aw: 0.12, P: 7.5, T: 240, D: 1.77 },
-            { name: "Pure Vessel", I: 7.0, Tg: 0.5, Aw: 0.10, P: 8.0, T: 150, D: 1.83 },
-            { name: "The Roaring Knight", I: 7.5, Tg: 0.45, Aw: 0.09, P: 8.0, T: 270, D: 1.92 },
-            { name: "Malenia", I: 7.5, Tg: 0.4, Aw: 0.09, P: 8.5, T: 300, D: 1.95 },
-            { name: "Lost Lace", I: 8.0, Tg: 0.35, Aw: 0.09, P: 8.5, T: 300, D: 2.18 },
-            { name: "Zenith Martlet", I: 7.5, Tg: 0.4, Aw: 0.08, P: 11.0, T: 900, D: 2.40 },
-            { name: "ANY Radiance 1.0", I: 8.5, Tg: 0.25, Aw: 0.06, P: 10.0, T: 480, D: 2.59 },
-            { name: "ANY Radiance 2.0", I: 9.0, Tg: 0.20, Aw: 0.05, P: 10.0, T: 600, D: 2.78 },
-            { name: "ANY Radiance 3.0", I: 9.5, Tg: 0.15, Aw: 0.04, P: 11.0, T: 720, D: 3.05 }
+            // Undertale/Deltarune
+            { name: "Sans", MI: 5.5, EF: 7.0, PC: 7.5, build: 1.0, consistency: 1.0, SS: 1.00 },
+            { name: "Undyne the Undying", MI: 5.8, EF: 6.5, PC: 6.0, build: 1.0, consistency: 1.0, SS: 0.97 },
+            { name: "Jevil", MI: 6.5, EF: 4.5, PC: 7.0, build: 1.0, consistency: 1.0, SS: 0.96 },
+            { name: "Jevil (Good Build)", MI: 6.5, EF: 4.5, PC: 7.0, build: 0.85, consistency: 1.0, SS: 0.89 },
+            { name: "The Roaring Knight", MI: 7.8, EF: 5.5, PC: 6.5, build: 1.0, consistency: 1.0, SS: 1.02 },
+            { name: "The Roaring Knight (Optimized)", MI: 7.8, EF: 5.5, PC: 6.5, build: 0.75, consistency: 1.0, SS: 0.89 },
+            { name: "The Roaring Knight (Suboptimal)", MI: 7.8, EF: 5.5, PC: 6.5, build: 1.25, consistency: 1.0, SS: 1.11 },
+            
+            // Hollow Knight - Moderate
+            { name: "Nightmare King Grimm", MI: 7.5, EF: 4.5, PC: 8.5, build: 1.0, consistency: 1.0, SS: 1.02 },
+            { name: "Lost Kin", MI: 7.8, EF: 6.5, PC: 7.5, build: 1.0, consistency: 1.0, SS: 1.05 },
+            { name: "Pure Vessel", MI: 8.5, EF: 5.5, PC: 9.0, build: 1.0, consistency: 1.0, SS: 1.06 },
+            
+            // Hollow Knight - Extreme
+            { name: "Absolute Radiance", MI: 9.0, EF: 7.5, PC: 9.5, build: 1.0, consistency: 1.0, SS: 1.12 },
+            { name: "Absolute Radiance (Hitless)", MI: 9.5, EF: 9.0, PC: 10.0, build: 1.0, consistency: 1.0, SS: 1.16 },
+            
+            // Community Challenges
+            { name: "ANY Radiance 1.0", MI: 9.8, EF: 9.5, PC: 10.0, build: 1.0, consistency: 2.5, SS: 1.58 },
+            { name: "ANY Radiance 2.0", MI: 10.0, EF: 10.0, PC: 10.0, build: 1.0, consistency: 4.0, SS: 1.79 },
+            { name: "ANY Radiance 3.0", MI: 10.0, EF: 10.0, PC: 10.0, build: 1.0, consistency: 5.5, SS: 1.93 }
         ];
 
         let bossDatabase = [];
+        let comparisonBosses = [];
+        let currentTab = 'all';
 
-        // Load from localStorage or use defaults
         function loadDatabase() {
-            const saved = localStorage.getItem('bossDatabase');
+            const saved = localStorage.getItem('bossDatabase_v3');
             if (saved) {
                 bossDatabase = JSON.parse(saved);
             } else {
@@ -466,77 +644,74 @@
         }
 
         function saveDatabase() {
-            localStorage.setItem('bossDatabase', JSON.stringify(bossDatabase));
+            localStorage.setItem('bossDatabase_v3', JSON.stringify(bossDatabase));
         }
 
         function resetDatabase() {
-            if (confirm('Reset database to defaults? This will remove any custom bosses you\'ve added.')) {
+            if (confirm('Reset database to defaults? This will remove any custom bosses you have added.')) {
                 bossDatabase = [...defaultBosses];
                 saveDatabase();
                 renderDatabase();
             }
         }
 
-        let comparisonBosses = [];
-        let currentTab = 'all';
-
-        function calculateRe(Aw, Tg) {
-            return Aw + 0.25 * Tg;
+        function updateSlider(param) {
+            const value = document.getElementById('slider' + param).value;
+            document.getElementById('value' + param).textContent = parseFloat(value).toFixed(1);
         }
 
-        function calculateR(Re) {
-            return 1 / Re;
-        }
-
-        function calculateS(I, R, P, T) {
-            return I * R * P * Math.log10(1 + T);
-        }
-
-        function calculateDMagnitude(S, sansS = SANS_S) {
-            const ratio = S / sansS;
-            const threshold = 150;
+        function calculateSansScale(MI, EF, PC, buildMod, consistencyMod) {
+            const baseScore = (MI * 0.45) + (EF * 0.35) + (PC * 0.20);
+            const adjustedScore = baseScore * buildMod * consistencyMod;
+            const ratio = adjustedScore / SANS_REFERENCE;
             
-            if (S < threshold) {
-                return Math.log10(ratio) + 1.0;
+            let magnitude;
+            if (ratio >= 1.0) {
+                magnitude = Math.log10(ratio) + 1.0;
             } else {
-                const thresholdMag = Math.log10(threshold / sansS) + 1.0;
-                const excessRatio = S / threshold;
-                return thresholdMag + (1.0 / Math.log(5)) * Math.log(excessRatio);
+                magnitude = (ratio - 1.0) * 0.5 + 1.0;
             }
+            
+            const multiplier = Math.pow(10, magnitude - 1.0);
+            
+            return {
+                magnitude: magnitude,
+                multiplier: multiplier,
+                baseScore: baseScore,
+                adjustedScore: adjustedScore
+            };
         }
 
-        function getTier(D) {
-            if (D < 1.1) return { name: "Baseline", class: "tier-baseline" };
-            if (D < 1.3) return { name: "Hard", class: "tier-hard" };
-            if (D < 1.6) return { name: "Very Hard", class: "tier-very-hard" };
-            if (D < 1.85) return { name: "Extreme", class: "tier-extreme" };
-            if (D < 2.5) return { name: "Practically Unbeatable", class: "tier-unbeatable" };
+        function getTier(SS) {
+            if (SS < 1.05) return { name: "Baseline", class: "tier-baseline" };
+            if (SS < 1.15) return { name: "Hard", class: "tier-hard" };
+            if (SS < 1.30) return { name: "Very Hard", class: "tier-very-hard" };
+            if (SS < 1.50) return { name: "Extreme", class: "tier-extreme" };
+            if (SS < 2.00) return { name: "Practically Unbeatable", class: "tier-unbeatable" };
             return { name: "Near Impossible", class: "tier-impossible" };
         }
 
         function calculateDifficulty() {
-            const I = parseFloat(document.getElementById('inputI').value);
-            const Tg = parseFloat(document.getElementById('inputTg').value);
-            const Aw = parseFloat(document.getElementById('inputAw').value);
-            const P = parseFloat(document.getElementById('inputP').value);
-            const T = parseFloat(document.getElementById('inputT').value);
+            const MI = parseFloat(document.getElementById('sliderMI').value);
+            const EF = parseFloat(document.getElementById('sliderEF').value);
+            const PC = parseFloat(document.getElementById('sliderPC').value);
+            const buildMod = parseFloat(document.getElementById('buildQuality').value);
+            const consistencyMod = parseFloat(document.getElementById('consistencyMod').value);
 
-            const Re = calculateRe(Aw, Tg);
-            const R = calculateR(Re);
-            const S = calculateS(I, R, P, T);
-            const D = calculateDMagnitude(S);
-            const multiplier = Math.pow(10, D - 1);
-            const tier = getTier(D);
+            const result = calculateSansScale(MI, EF, PC, buildMod, consistencyMod);
+            const tier = getTier(result.magnitude);
 
-            document.getElementById('resultD').textContent = `D = ${D.toFixed(2)}`;
-            document.getElementById('resultMult').textContent = `${multiplier.toFixed(1)}× harder than Sans`;
+            document.getElementById('resultSS').textContent = `SS = ${result.magnitude.toFixed(2)}`;
+            document.getElementById('resultMult').textContent = `${result.multiplier.toFixed(2)}x harder than Sans`;
             document.getElementById('resultTier').innerHTML = `<span class="tier-badge ${tier.class}">${tier.name}</span>`;
             document.getElementById('result').style.display = 'block';
 
-            // Store current calculation
             window.currentCalculation = {
                 name: document.getElementById('bossName').value || "Custom Boss",
-                I, Tg, Aw, P, T, D
+                MI, EF, PC,
+                build: buildMod,
+                consistency: consistencyMod,
+                SS: result.magnitude
             };
         }
 
@@ -558,25 +733,20 @@
 
         function loadBoss(boss) {
             document.getElementById('bossName').value = boss.name;
-            document.getElementById('inputI').value = boss.I;
-            document.getElementById('inputTg').value = boss.Tg;
-            document.getElementById('inputAw').value = boss.Aw;
-            document.getElementById('inputP').value = boss.P;
-            document.getElementById('inputT').value = boss.T;
+            document.getElementById('sliderMI').value = boss.MI;
+            document.getElementById('sliderEF').value = boss.EF;
+            document.getElementById('sliderPC').value = boss.PC;
+            document.getElementById('buildQuality').value = boss.build;
+            document.getElementById('consistencyMod').value = boss.consistency;
+            
+            updateSlider('MI');
+            updateSlider('EF');
+            updateSlider('PC');
             
             calculateDifficulty();
             
-            // Highlight selected
             document.querySelectorAll('.boss-entry').forEach(el => el.classList.remove('selected'));
             event.target.closest('.boss-entry').classList.add('selected');
-        }
-
-        function addBossToComparison(boss) {
-            const exists = comparisonBosses.find(b => b.name === boss.name);
-            if (!exists) {
-                comparisonBosses.push(boss);
-                updateComparisonView();
-            }
         }
 
         function renderDatabase() {
@@ -584,26 +754,26 @@
             let bosses = [...bossDatabase];
 
             if (currentTab === 'beatable') {
-                bosses = bosses.filter(b => b.D <= 1.83);
+                bosses = bosses.filter(b => b.SS < 1.30);
             } else if (currentTab === 'unbeatable') {
-                bosses = bosses.filter(b => b.D > 1.85);
+                bosses = bosses.filter(b => b.SS >= 1.30);
             }
 
             let html = '';
             let needsCeiling = false;
 
-            bosses.forEach((boss, idx) => {
-                if (!needsCeiling && boss.D > 1.85) {
+            bosses.forEach((boss) => {
+                if (!needsCeiling && boss.SS >= 1.20) {
                     html += `
                         <div class="practice-ceiling-line">
-                            <div class="practice-ceiling-label">PRACTICE CEILING (D ≈ 1.85) - Skill Alone No Longer Sufficient</div>
+                            <div class="practice-ceiling-label">PRACTICE CEILING (SS ~1.20-1.30) - Practice Alone No Longer Sufficient</div>
                         </div>
                     `;
                     needsCeiling = true;
                 }
 
-                const tier = getTier(boss.D);
-                const mult = Math.pow(10, boss.D - 1);
+                const tier = getTier(boss.SS);
+                const result = calculateSansScale(boss.MI, boss.EF, boss.PC, boss.build, boss.consistency);
                 
                 html += `
                     <div class="boss-entry" onclick="loadBoss(bossDatabase[${bossDatabase.indexOf(boss)}])">
@@ -612,13 +782,13 @@
                             <span class="tier-badge ${tier.class}">${tier.name}</span>
                         </div>
                         <div class="boss-stats">
-                            <span class="boss-magnitude">D = ${boss.D.toFixed(2)}</span>
-                            <span>I: ${boss.I}</span>
-                            <span>Tg: ${boss.Tg}s</span>
-                            <span>Aw: ${boss.Aw}s</span>
-                            <span>P: ${boss.P}</span>
-                            <span>T: ${boss.T}s</span>
-                            <span style="color: var(--color-warning);">${mult.toFixed(1)}×</span>
+                            <span class="boss-magnitude">SS = ${boss.SS.toFixed(2)}</span>
+                            <span>MI: ${boss.MI}</span>
+                            <span>EF: ${boss.EF}</span>
+                            <span>PC: ${boss.PC}</span>
+                            <span>Build: ${boss.build}x</span>
+                            <span>Consistency: ${boss.consistency}x</span>
+                            <span style="color: var(--color-warning);">${result.multiplier.toFixed(2)}x</span>
                         </div>
                     </div>
                 `;
@@ -639,20 +809,20 @@
                 return;
             }
 
-            const sorted = [...comparisonBosses].sort((a, b) => a.D - b.D);
+            const sorted = [...comparisonBosses].sort((a, b) => a.SS - b.SS);
 
             let html = `
                 <table class="comparison-table">
                     <thead>
                         <tr>
                             <th>Boss</th>
-                            <th>D</th>
+                            <th>SS</th>
                             <th>Multiplier</th>
-                            <th>I</th>
-                            <th>Tg</th>
-                            <th>Aw</th>
-                            <th>P</th>
-                            <th>T</th>
+                            <th>MI</th>
+                            <th>EF</th>
+                            <th>PC</th>
+                            <th>Build</th>
+                            <th>Consistency</th>
                             <th>Tier</th>
                             <th></th>
                         </tr>
@@ -661,19 +831,19 @@
             `;
 
             sorted.forEach(boss => {
-                const tier = getTier(boss.D);
-                const mult = Math.pow(10, boss.D - 1);
+                const tier = getTier(boss.SS);
+                const result = calculateSansScale(boss.MI, boss.EF, boss.PC, boss.build, boss.consistency);
                 
                 html += `
                     <tr>
                         <td><strong>${boss.name}</strong></td>
-                        <td style="color: var(--color-primary); font-weight: 600;">${boss.D.toFixed(2)}</td>
-                        <td style="color: var(--color-warning);">${mult.toFixed(1)}×</td>
-                        <td>${boss.I}</td>
-                        <td>${boss.Tg}</td>
-                        <td>${boss.Aw}</td>
-                        <td>${boss.P}</td>
-                        <td>${boss.T}</td>
+                        <td style="color: var(--color-primary); font-weight: 600;">${boss.SS.toFixed(2)}</td>
+                        <td style="color: var(--color-warning);">${result.multiplier.toFixed(2)}x</td>
+                        <td>${boss.MI}</td>
+                        <td>${boss.EF}</td>
+                        <td>${boss.PC}</td>
+                        <td>${boss.build}x</td>
+                        <td>${boss.consistency}x</td>
                         <td><span class="tier-badge ${tier.class}">${tier.name}</span></td>
                         <td><button class="secondary" style="padding: 4px 8px; font-size: 0.8rem; width: auto;" onclick="removeFromComparison('${boss.name}')">Remove</button></td>
                     </tr>
@@ -725,11 +895,16 @@
                 }
             } else {
                 bossDatabase.push(window.currentCalculation);
-                bossDatabase.sort((a, b) => a.D - b.D);
+                bossDatabase.sort((a, b) => a.SS - b.SS);
                 saveDatabase();
                 renderDatabase();
                 alert("Boss added to database!");
             }
+        }
+
+        function toggleGuide() {
+            const content = document.getElementById('guideContent');
+            content.classList.toggle('active');
         }
 
         // Initialize
@@ -738,4 +913,3 @@
     </script>
 </body>
 </html>
-
